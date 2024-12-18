@@ -60,7 +60,7 @@ def add_background_noise(img, background_img, label_file):
                 x_center = ((x1 + x2) / 2) / ww
                 y_center = ((y1 + y2) / 2) / hh
                 box_width = (x2 - x1) / ww
-                box_height = (y2 - y1 + abs(angle) * ((y2 - y1) * 0.3)) / hh
+                box_height = (y2 - y1 + (abs(angle)*10) * ((y2 - y1) * 0.2)) / hh
 
                 if len(boxes) < 13:
                     boxes.append([class_id, x_center, y_center, box_width, box_height])
