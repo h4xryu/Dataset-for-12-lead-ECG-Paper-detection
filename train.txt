@@ -1,0 +1,12 @@
+python train.py --batch-size 32 --img-size 640 --epochs 350 --hyp data/hyp.scratch.p5.yaml --data ECG_yolov7_datasets/data.yaml --weights "" --cfg cfg/training/yolov7.yaml
+
+
+
+python detect.py --weights best_ver4.pt --source background_test3.jpeg
+python roi.py --weights best_ver4.pt --source background_test3.jpeg
+
+
+
+
+
+
