@@ -1,6 +1,6 @@
 # 12-Lead ECG Dataset for YOLOv7
 
-This repository provides resources and scripts to prepare and augment 12-lead ECG datasets for use with YOLOv7 models. The scripts include utilities for crawling background images, augmenting ECG data with various effects, and managing dataset organization.
+This repository provides resources and scripts to prepare and augment 12-lead ECG datasets for use with YOLOv7 models. The scripts include utilities for crawling background images, augmenting ECG data with various effects, extracting Regions of Interest (ROIs), and managing dataset organization.
 
 ## Contents
 
@@ -95,9 +95,26 @@ if __name__ == "__main__":
                     f.write(f"{box[0]} {box[1]:.6f} {box[2]:.6f} {box[3]:.6f} {box[4]:.6f}\n")
 ```
 
+### `roi.py`
+This script extracts Regions of Interest (ROIs) from images using a YOLOv7 model and saves them as individual image files along with their bounding box information.
+
+#### Key Function: `detect_and_save_rois`
+- Extracts ROIs from input images based on YOLOv7 detections.
+- Saves ROIs as separate image files and bounding box information in YOLO format.
+- Automatically organizes and sorts the leads based on classes and positions.
+
+#### Usage:
+Run the script with the following command:
+```bash
+python roi.py --weights [pt_file] --source [image_file]
+```
+
+#### Arguments:
+- `--weights`: Path to the YOLOv7 model file (e.g., `yolov7.pt`).
+- `--source`: Path to the image or folder of images for inference.
+
 ## Notes
-- Ensure the `icrawler` and `cv2` libraries are installed before running the scripts.
+- Ensure the `icrawler`, `cv2`, and `torch` libraries are installed before running the scripts.
 - The `augmentation.py` script assumes images and labels follow the YOLO format.
 - Background images should be downloaded using `crawling_bg.py` and stored in the `bg_noises` directory.
-
 
