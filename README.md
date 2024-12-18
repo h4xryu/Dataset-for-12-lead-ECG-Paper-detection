@@ -2,10 +2,30 @@
 
 This repository provides resources and scripts to prepare and augment 12-lead ECG datasets for use with YOLOv7 models. The scripts include utilities for crawling background images, augmenting ECG data with various effects, extracting Regions of Interest (ROIs), and managing dataset organization.
 
+***
+
 ### Examples
 
 ![nn](https://ifh.cc/g/lQGQhP.png)
 ![nn](https://ifh.cc/g/tQaFhh.png)
+
+*** 
+## Requirements
+To run the scripts in this repository, install the following dependencies:
+
+
+### Install Requirements
+To install the dependencies on Ubuntu, use the following command:
+```bash
+pip install -r requirements.txt
+```
+
+Ensure you have Python and `pip` installed on your system. You can verify this with:
+```bash
+python --version
+pip --version
+```
+***
 
 ## Contents
 
@@ -117,6 +137,8 @@ python roi.py --weights [pt_file] --source [image_file]
 #### Arguments:
 - `--weights`: Path to the YOLOv7 model file (e.g., `yolov7.pt`).
 - `--source`: Path to the image or folder of images for inference.
+
+***
 
 ## Notes
 - Ensure the `icrawler`, `cv2`, and `torch` libraries are installed before running the scripts.
