@@ -30,10 +30,12 @@ def add_background_noise(img, background_img, label_file):
     # 패딩 값 설정 (상단, 하단, 좌측, 우측)
     # top, bottom, left, right = 800, 800, 800, 800  
 
-    top = random.randint(100,1000)
-    bottom = random.randint(100,1000)
-    left = random.randint(100,1000)
-    right = random.randint(100,1000)
+    rval = random.randint(100,1000)
+    
+    top = rval
+    bottom = rval
+    left = rval
+    right = rval
     
     
     """
@@ -43,7 +45,7 @@ def add_background_noise(img, background_img, label_file):
     h, w = original_img.shape[:2]  # 실제 이미지 크기
     
 
-    angle = random.randint(-2, 2) 
+    angle = random.randint(-5, 5) 
     center = (w // 2, h // 2)
     rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
 
@@ -87,15 +89,11 @@ def add_background_noise(img, background_img, label_file):
                 x2 += left
                 y2 += top
 
-                # 좌표 정렬
-                x_min, x_max = sorted([x1, x2])
-                y_min, y_max = sorted([y1, y2])
-
                 # YOLO 형식 좌표 계산
-                x_center = ((x_min + x_max) / 2) / ww
-                y_center = ((y_min + y_max) / 2) / hh
-                box_width = (x_max - x_min) / ww
-                box_height = (y_max - y_min) / hh
+                x_center = ((x1 + x2) / 2) / ww
+                y_center = ((y1 + y2) / 2) / hh
+                box_width = (x2 - x1) / ww
+                box_height = (y2 - y1 + abs(angle)*((y2 - y1)*0.1)) / hh
 
 
                 boxes.append([class_id,x_center,y_center,box_width,box_height])
@@ -114,18 +112,6 @@ def add_background_noise(img, background_img, label_file):
     extended_img[mask] = background_img[mask]  # 마스크된 부분을 overlay_img 픽셀로 교체
 
 
-    for box in boxes:
-        class_id, x_center, y_center, box_width, box_height = box
-        x = int(x_center * ww)
-        y = int(y_center * hh)
-
-        # 회전 변환
-        new_coords = np.dot(rotation_matrix, np.array([x, y, 1]))
-        new_x, new_y = new_coords[:2]
-
-        # YOLO 형식으로 변환
-        box[1] = new_x / ww
-        box[2] = new_y / hh
     
 
     return extended_img, boxes
