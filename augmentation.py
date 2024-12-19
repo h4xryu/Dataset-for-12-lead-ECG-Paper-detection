@@ -18,25 +18,45 @@ image = None
 img_copy = None
 img_with_text = None  # 텍스트가 추가된 이미지
 
-# 배경 추가 함수
 def add_background_noise(img, background_img, label_file):
-    rval = random.randint(100, 1000)
-    top = bottom = left = right = rval
+    import random
+    import os
+    import cv2
+    import numpy as np
 
+    # 랜덤 패딩 크기 설정
+    padding = random.randint(400, 600)
+    top = bottom = left = right = padding
+
+    # 원본 이미지 복사
     original_img = img.copy()
     h, w = original_img.shape[:2]
 
-    angle = random.randint(-5, 5)
+    # 랜덤 회전 설정
+    angle = float(random.randint(-250, 250) / 100)
     center = (w // 2, h // 2)
     rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
-    original_img = cv2.warpAffine(original_img, rotation_matrix, (w, h), flags=cv2.INTER_LINEAR)
+    rotated_img = cv2.warpAffine(original_img, rotation_matrix, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0))
 
+    # 패딩 추가
     extended_img = cv2.copyMakeBorder(
-        original_img, top, bottom, left, right, 
+        rotated_img, top, bottom, left, right, 
         borderType=cv2.BORDER_CONSTANT, value=[0, 0, 0]
     )
 
+    # 새로운 이미지 크기
     hh, ww = extended_img.shape[:2]
+    background_img = cv2.resize(background_img, (ww, hh))
+
+    if background_img.shape[0] < hh or background_img.shape[1] < ww:
+        background_img = cv2.resize(
+            background_img, (ww, hh), interpolation=cv2.INTER_CUBIC
+        )
+
+    if background_img.shape[0] < hh or background_img.shape[1] < ww:
+        return original_img, boxes        
+
+    # 바운딩 박스 변환
     boxes = []
     if os.path.exists(label_file):
         with open(label_file, "r") as f:
@@ -45,31 +65,42 @@ def add_background_noise(img, background_img, label_file):
                 data = line.strip().split()
                 if len(data) != 5:
                     continue
+
+                # YOLO 포맷 파싱
                 class_id, x_center, y_center, box_width, box_height = map(float, data)
 
-                x1 = int((x_center - box_width / 2) * w)
-                y1 = int((y_center - box_height / 2) * h)
-                x2 = int((x_center + box_width / 2) * w)
-                y2 = int((y_center + box_height / 2) * h)
+                # 좌표 변환 (기존 이미지 크기 기준)
+                x1 = ((x_center - box_width / 2) * w)
+                y1 = ((y_center - box_height / 2) * h)
+                x2 = ((x_center + box_width / 2) * w)
+                y2 = ((y_center + box_height / 2) * h)
 
+                # 패딩 적용
                 x1 += left
                 y1 += top
                 x2 += left
                 y2 += top
 
-                x_center = ((x1 + x2) / 2) / ww
-                y_center = ((y1 + y2) / 2) / hh
-                box_width = (x2 - x1) / ww
-                box_height = (y2 - y1 + (abs(angle)*10) * ((y2 - y1) * 0.2)) / hh
 
-                if len(boxes) < 13:
+                # 정규화된 YOLO 포맷 계산
+                x_center = ((x1 + x2) / 2) / ww
+                y_center = ((y1 + y2)/ 2) / hh
+                box_width = ((x2 - x1) + (x2 - x1)*0.2) / ww
+                box_height = ((y2 - y1) + (y2 - y1)*0.2) / hh
+
+                # 유효한 박스만 추가
+                if box_width > 0 and box_height > 0 and len(boxes) < 13:
                     boxes.append([class_id, x_center, y_center, box_width, box_height])
 
-    background_img = cv2.resize(background_img, (extended_img.shape[1], extended_img.shape[0]))
+
+    # 마스크 생성 (검은색 픽셀 감지)
     mask = np.all(extended_img == 0, axis=-1)
+
+    # 배경 이미지로 검은 영역 채우기
     extended_img[mask] = background_img[mask]
 
     return extended_img, boxes
+
 
 # 그림자 효과 생성 함수
 def generate_spot_light_mask(mask_size, position=None, max_brightness=255, min_brightness=0, mode="gaussian", linear_decay_rate=None):
@@ -126,7 +157,7 @@ def add_bend_distortion(original):
     return warp(original, transform_coords, mode="constant", cval=0, preserve_range=True).astype(original.dtype)
 
 root = "/media/jwlee/9611c7a0-8b37-472c-8bbb-66cac63bc1c7/"
-version = "ECG_yolov7_datasets"
+version = "ECG_yolov7_datasets_v2"
 set_list = ["train", "test", "valid"]
 folder_list = ["images", "labels"]
 bg_path = os.path.expanduser(os.path.join(os.getcwd(), "bg_noises"))
@@ -160,20 +191,26 @@ if __name__ == "__main__":
             for image_file, label_file in tqdm(zip(image_files, label_files), total=len(image_files), desc="Processing"):
                 img = cv2.imread(os.path.join(image_directory, image_file))
                 augimg = img.copy()
-                mode = random.choice([True, False])
+                if augimg is None:
+                    continue
 
-                if mode:
+                mode = (random.randrange(0,10)/10)
+                h, w = augimg.shape[:2]
+                if mode > 0.5:
                     bg_files = [f for f in os.listdir(bg_path) if f.endswith((".jpg", ".png", ".jpeg"))]
                     bg = cv2.imread(os.path.join(bg_path, bg_files[random.randrange(0, len(bg_files))]))
-                    augimg, boxes = add_background_noise(augimg, background_img=bg, label_file=os.path.join(label_directory, label_file))
+                    augimg, boxes = add_background_noise(augimg, background_img=bg, label_file=os.path.join(label_directory, image_file[:-4]+".txt"))
                     cv2.imwrite(os.path.join(output_image_directory, f"{image_file[:-4]}-augmented{image_file[-4:]}"), augimg)
+                    with open(os.path.join(output_label_directory, f"{image_file[:-4]}-augmented.txt"), 'w') as f:
+                            f.write('')
                     for box in boxes:
+                        
                         with open(os.path.join(output_label_directory, f"{image_file[:-4]}-augmented.txt"), 'a') as f:
                             classes, x_center, y_center, width, height = box
                             f.write(f"{int(classes)} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}\n")
                 else:
                     cv2.imwrite(os.path.join(output_image_directory, f"{image_file[:-4]}-augmented{image_file[-4:]}"), augimg)
                     shutil.copy(
-                        src=os.path.join(label_directory, label_file),
-                        dst=os.path.join(output_label_directory, f"{label_file[:-4]}-augmented{label_file[-4:]}"),
+                        src=os.path.join(label_directory, f"{image_file[:-4]}.txt"),
+                        dst=os.path.join(output_label_directory, f"{image_file[:-4]}-augmented{label_file[-4:]}"),
                     )
