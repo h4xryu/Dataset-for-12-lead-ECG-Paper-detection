@@ -25,9 +25,12 @@ def add_background_noise(img, background_img, label_file):
     import numpy as np
 
     # 랜덤 패딩 크기 설정
-    padding = random.randint(400, 600)
-    top = bottom = left = right = padding
-
+    # padding = random.randint(400, 600)
+    # top = bottom = left = right = padding
+    top = random.randint(400, 600)
+    bottom = random.randint(400, 600)
+    left = random.randint(400, 600)
+    right = random.randint(400, 600)
     # 원본 이미지 복사
     original_img = img.copy()
     h, w = original_img.shape[:2]
@@ -85,7 +88,7 @@ def add_background_noise(img, background_img, label_file):
                 # 정규화된 YOLO 포맷 계산
                 x_center = ((x1 + x2) / 2) / ww
                 y_center = ((y1 + y2)/ 2) / hh
-                box_width = ((x2 - x1) + (x2 - x1)*0.2) / ww
+                box_width = ((x2 - x1)) / ww
                 box_height = ((y2 - y1) + (y2 - y1)*0.2) / hh
 
                 # 유효한 박스만 추가
@@ -190,9 +193,10 @@ if __name__ == "__main__":
 
             for image_file, label_file in tqdm(zip(image_files, label_files), total=len(image_files), desc="Processing"):
                 img = cv2.imread(os.path.join(image_directory, image_file))
-                augimg = img.copy()
-                if augimg is None:
+                if img is None:
                     continue
+                augimg = img.copy()
+               
 
                 mode = (random.randrange(0,10)/10)
                 h, w = augimg.shape[:2]
