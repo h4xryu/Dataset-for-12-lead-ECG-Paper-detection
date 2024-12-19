@@ -4,10 +4,10 @@ This repository provides resources and scripts to prepare and augment 12-lead EC
 
 ***
 
-### Examples
+### Examples (YOLO Dataset)
+![nn](https://ifh.cc/g/AjB3F3.png)
+![nn](https://ifh.cc/g/5cvLxR.png)
 
-![nn](https://ifh.cc/g/lQGQhP.png)
-![nn](https://ifh.cc/g/tQaFhh.png)
 
 *** 
 ## Requirements
