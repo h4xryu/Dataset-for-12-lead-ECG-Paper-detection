@@ -8,6 +8,7 @@ This repository provides resources and scripts to prepare and augment 12-lead EC
 ![nn](https://ifh.cc/g/AjB3F3.png)
 ![nn](https://ifh.cc/g/5cvLxR.png)
 ![nn](https://ifh.cc/g/Wyq2Wg.png)
+![nn](https://ifh.cc/g/BnTMsB.png)
 
 
 *** 
